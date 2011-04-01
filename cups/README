@@ -1,0 +1,50 @@
+check_cups_server 0.1
+
+This is a Nagios plugin written in perl which will check a cups server. The
+script needs to know what will be considered the critical and warning levels
+for jobs queued. It also returns Unknow if there's no server, the server has
+any pinters, or the server has't one of the printers specified.
+
+The script can compute levels usin individual job coun or sum count of jobs.
+
+This software requires the following perl modules:
+
+  - Nagios::Plugins
+  - Net::CUPS
+
+Both are part of the debian distribution under packages libnagios-plugins-perl
+and libnet-cups-perl. Other distros may include these as well.
+
+License: Artistic 2.0
+http://www.perlfoundation.org/artistic_license_2_0
+
+Usage: check_cups_server (-H|--host)=<master host> [(-p|--printers)=<printer to check>]+ [(-s| --sum)] (-c|--jobs_crit)=<Critical jobs level> (-w|--jobs_warn)=<Warning jobs level>
+
+ -?, --usage
+   Print usage information
+ -h, --help
+   Print detailed help screen
+ -V, --version
+   Print version information
+ --extra-opts=[section][@file]
+   Read options from an ini file. See http://nagiosplugins.org/extra-opts for usage
+ -H, --host=<master host>
+   Host server to check for cups daemon
+ -p, --printers=<printer to check>
+   Printer to check for jobqueue, multiple values allowed
+ -s, --sum
+   Treat the sum of all queues of the printers specified as one
+ -c, --jobs_crit=<Critical jobs level>
+   Enqueued jobs to be conidered critical
+ -w, --jobs_warn=<Warning jobs level>
+   Enqueued jobs to be conidered warning
+ -t, --timeout=INTEGER
+   Seconds before plugin times out (default: 15)
+ -v, --verbose
+   Show details for command-line debugging (can repeat up to 3 times)
+
+
+(c) 2011 Carlos Peñas San José
+Warp Networks S.L.
+
+http://warp.es
