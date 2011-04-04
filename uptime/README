@@ -1,0 +1,38 @@
+Plugin for uptime checking.
+
+Sometimes a server reboots without Nagios feedback, so this plugin retains the
+uptime of any server by SNMP checks and fail if uptime time has dropped under
+the last know value.
+
+This plugins relies on Net::SNMP packages and need write access to /tmp and
+read access to the snmp daemon on monitored machine.
+
+Once in critical it requires manual action to erase the control file on /tmp
+
+check_uptime_drop 0.1
+
+artistic 2.0
+
+Usage: check_uptime_drop [-v|--verbose]+ [-t <timeout>] <-H host> -C <community name>
+
+ -?, --usage
+   Print usage information
+ -h, --help
+   Print detailed help screen
+ -V, --version
+   Print version information
+ --extra-opts=[section][@file]
+   Read options from an ini file. See http://nagiosplugins.org/extra-opts for usage
+ -H, --host=<host to check>
+   IP or hostname to check
+ -C, --community=INTEGER
+   SNMP comunity to check (defaults to 'public')
+ -t, --timeout=INTEGER
+   Seconds before plugin times out (default: 15)
+ -v, --verbose
+   Show details for command-line debugging (can repeat up to 3 times)
+
+(c) 2011 Carlos Peñas San José
+Warp Networks S.L.
+
+http://warp.es

@@ -1,0 +1,98 @@
+#!/usr/bin/perl -w
+#
+# check_cups_server
+#
+# This software must be redistributed under the terms of Artistic License 2.0
+#
+# (c) 2011 Carlos Peñas San José
+# Warp Networks S.L.
+# http://warp.es
+#
+
+use strict;
+
+use Nagios::Plugin;
+use Net::SNMP;
+
+my $n_plugin  =  Nagios::Plugin->new (
+    shortname => 'UPTIMEDROP',
+    version => '0.1',
+    license => 'artistic 2.0',
+    usage => 'Usage: %s [-v|--verbose]+ [-t <timeout>] <-H host> -C <community name>',
+);
+
+$n_plugin->add_arg(
+    spec => 'host|H=s',
+    help => "-H, --host=<host to check>\n   IP or hostname to check",
+    required => 1,
+);
+$n_plugin->add_arg(
+    spec => 'community|C=s',
+    help => "-C, --community=INTEGER\n   SNMP comunity to check (defaults to 'public')",
+    default => 'public',
+    required => 0,
+);
+
+$n_plugin->getopts;
+
+sub debug{
+    my ($message,$level) = @_;
+    $level = 1 unless $level;
+    if ($n_plugin->opts->verbose >= $level){
+        print STDERR "debug:($level):$message\n";
+    }
+}
+
+my $base_path = '/tmp/nagios/uptimedrop/';
+my $base = '/';
+
+while ($base_path =~ /\/([^\/]+)/g) {
+    $base .= $1;
+    if ( not -d $base){
+        debug("mkdir $base\n");
+        mkdir($base);
+    }
+    $base .= '/';
+}
+
+my ($session,$error) = Net::SNMP->session(Hostname => $n_plugin->opts->host,
+                                       Community => $n_plugin->opts->community,
+                                       translate => 0);
+
+die "session error: $error" unless ($session);
+
+my $result = $session->get_request('1.3.6.1.2.1.25.1.1.0');
+
+die 'request error: '.$session->error unless (defined $result);
+
+$session->close;
+
+debug('Number of ticks: '.$result->{'1.3.6.1.2.1.25.1.1.0'}."\n");
+
+if (-e $base_path.$n_plugin->opts->host){
+    open(FILE,'<', $base_path.$n_plugin->opts->host) or die 'File open error '. $base_path.$n_plugin->opts->host;
+    my $old = <FILE>;
+    close(FILE);
+	unless ($old) {
+		open(FILE,'>', $base_path.$n_plugin->opts->host) or die 'File open error '. $base_path.$n_plugin->opts->host;
+		print FILE $result->{'1.3.6.1.2.1.25.1.1.0'};
+		close FILE;
+		$n_plugin->nagios_exit(WARNING,'Empty file Counter Reset to '.$result->{'1.3.6.1.2.1.25.1.1.0'});
+	}
+    chomp $old;
+    debug("old ticks '$old'");
+    if ($old > $result->{'1.3.6.1.2.1.25.1.1.0'}){
+        $n_plugin->nagios_exit(CRITICAL,'Unhandled reboot detected '.$result->{'1.3.6.1.2.1.25.1.1.0'});
+    } else {
+        open(FILE,">", $base_path.$n_plugin->opts->host) or die 'File open error '. $base_path.$n_plugin->opts->host;
+        print FILE $result->{'1.3.6.1.2.1.25.1.1.0'};
+        close FILE;
+        $n_plugin->nagios_exit(OK,' '.$result->{'1.3.6.1.2.1.25.1.1.0'});
+    }
+} else {
+    open(FILE,'>', $base_path.$n_plugin->opts->host) or die 'File open error '. $base_path.$n_plugin->opts->host;
+    print FILE $result->{'1.3.6.1.2.1.25.1.1.0'};
+    close FILE;
+    $n_plugin->nagios_exit(WARNING,'Counter Reset to '.$result->{'1.3.6.1.2.1.25.1.1.0'});
+}
+$n_plugin->nagios_exit(UNKNOWN,'Unimplemented');
