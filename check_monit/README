@@ -1,0 +1,54 @@
+check_monit 0.1
+
+This is a Nagios plugin written in perl which will check a monit server. The
+script acepts port and host of the monit server and a list of services to check.
+The list of services is optional, if it's not provided this plugin will check
+all the services on the monit server.
+
+The script yields OK if every service checked is running. If there's a service
+in other state will exit with status CRITICAL informing the name of the first
+failed checked service.
+
+If there's no connection to the monit server the script will return a UNKNOW 
+status, or a warning if there's a monitor specified by parameter that can be 
+found
+
+This software requires the following perl modules:
+
+  - Nagios::Plugins
+  - Munin::HTTP
+
+First one part of the debian distribution under packages libnagios-plugins-perl
+and the other is an small module wich can be installed thru CPAN. Other distros
+may include these as well.
+
+artistic 2.0
+
+Usage: check_monit [-v|--verbose]+ [-t <timeout>] <-H host> [-p <port>]
+
+ -?, --usage
+   Print usage information
+ -h, --help
+   Print detailed help screen
+ -V, --version
+   Print version information
+ --extra-opts=[<section>[@<config_file>]]
+   Section and/or config_file from which to load extra options (may repeat)
+ -H, --host=<host>
+ IP or hostname to check
+ -p, --port=<port>
+ Port to check, defaults to 9000
+ -m, --monitors=<monitors>
+ Port to check, defaults to 9000
+ -t, --timeout=INTEGER
+   Seconds before plugin times out (default: 15)
+ -v, --verbose
+   Show details for command-line debugging (can repeat up to 3 times)
+
+License: Artistic 2.0
+http://www.perlfoundation.org/artistic_license_2_0
+
+(c) 2011 Carlos Peñas San José
+The Cocktail Experience.
+
+http://the-cocktail.com

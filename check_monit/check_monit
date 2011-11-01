@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+# check_monit_server
+#
+# This software must be redistributed under the terms of Artistic License 2.0
+#
+# (c) 2011 Carlos Peñas San José
+# The Cocktail Experience
+# http://the-cocktail.com
+#
+
+use strict;
+
+use Nagios::Plugin;
+use Monit::HTTP ':constants';
+
+my $n_plugin = Nagios::Plugin->new (
+    shortname => 'MONIT',
+    version => '0.1',
+    license => 'artistic 2.0',
+    usage => 'Usage: %s [-v|--verbose]+ [-t <timeout>] <-H host> [-p <port>] [-m <monitor list>]',
+);
+
+$n_plugin->add_arg(
+    spec => 'host|H=s',
+    help => "-H, --host=<host>\n IP or hostname to check",
+    required => 1,
+);
+$n_plugin->add_arg(
+    spec => 'port|p=s',
+    help => "-p, --port=<port>\n Port to check, defaults to 9000",
+    required => 0,
+    default => '9000'
+);
+$n_plugin->add_arg(
+    spec => 'monitors|m=s',
+    help => "-m, --monitors=<monitors>\n comma separated list of monitors to check. Defaults is check all the monitors",
+    required => 0,
+    default => '#ALL#'
+);
+$n_plugin->getopts;
+
+sub debug {
+    my ($message,$level) = @_;
+    $level = 1 unless $level;
+    if ($n_plugin->opts->verbose >= $level){
+        print STDERR "debug:($level):$message\n";
+    }
+}
+
+my $monit = new Monit::HTTP(
+	hostname => $n_plugin->opts->host,
+	port => $n_plugin->opts->port);
+
+$n_plugin->nagios_exit(UNKNOWN, 'Error connecting monit') unless $monit;
+
+sub is_running {
+	my ($service) = @_;
+	my $status;
+	eval {
+	    $status = $monit->service_status($service);
+	    1;
+	} or do {
+	    $n_plugin->nagios_exit(WARNING, $service.' does not exist');
+	};
+	return ($status->{status} eq '0');
+}
+
+my @monitors;
+
+if ($n_plugin->opts->monitors eq '#ALL#'){
+	@monitors = $monit->get_services();
+} else {
+	@monitors = split(/,/,$n_plugin->opts->monitors)
+}
+
+for my $m (@monitors){
+    unless (is_running($m)){
+	$n_plugin->nagios_exit(CRITICAL,$m.' is not running');
+    }
+}
+
+$n_plugin->nagios_exit(OK,'');
