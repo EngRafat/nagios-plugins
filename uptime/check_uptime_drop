@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 #
-# check_cups_server
+# check_uptime_drop
 #
 # This software must be redistributed under the terms of Artistic License 2.0
 #
 # (c) 2011 Carlos Peñas San José
 # Warp Networks S.L.
-# http://warp.es
+# http://warp.es (not there anymore)
 #
 
 use strict;
